@@ -100,10 +100,11 @@ function Loader({ onDone }) {
         onAnimationComplete={() => setTimeout(onDone, 1400)}
       >
         <div
-          className="text-4xl md:text-5xl font-bold mb-2 tracking-wide"
+          className="text-4xl md:text-5xl font-bold mb-2 tracking-wide leading-tight"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
-          PODERE SCOGLIO D&apos;ORO
+          <span className="block md:inline">PODERE SCOGLIO</span>{' '}
+          <span className="block md:inline">D&apos;ORO</span>
         </div>
         <div className="text-xs tracking-[0.5em] text-white/60 uppercase mb-8">
           Agriturismo · Toscana
