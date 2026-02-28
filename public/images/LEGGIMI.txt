@@ -1,0 +1,49 @@
+======================================================
+  CARTELLA FOTO - Agriturismo Scoglio d'Oro
+======================================================
+
+Metti qui le tue foto e aggiorna i percorsi in:
+  src/app/page.js  (sezione IMMAGINI in alto al file)
+
+------------------------------------------------------
+FOTO NECESSARIE - nomi consigliati:
+------------------------------------------------------
+
+1. hero-piscina.jpg  (o .webp / .png)
+   → Foto GRANDE per lo sfondo della sezione Hero
+   → La prima immagine che vede il visitatore
+   → Ideale: piscina a sfioro, struttura dall'esterno,
+             panorama della vallata
+   → Dimensione consigliata: almeno 1920×1080 px
+
+2. appartamento-loft.jpg
+   → Foto dell'APPARTAMENTO LOFT
+   → Mostrata nella sezione "Alloggi" quando si
+     clicca su "Appartamento Loft"
+   → Ideale: salotto, zona notte, terrazzo, cucina
+   → Dimensione consigliata: almeno 800×600 px
+
+3. appartamento-attico.jpg
+   → Foto dell'APPARTAMENTO ATTICO
+   → Mostrata nella sezione "Alloggi" quando si
+     clicca su "Appartamento Attico"
+   → Ideale: finestra panoramica, salotto, terrazzino
+   → Dimensione consigliata: almeno 800×600 px
+
+------------------------------------------------------
+COME COLLEGARE LE FOTO AL SITO:
+------------------------------------------------------
+
+Apri  src/app/page.js  e trova la sezione:
+
+  const IMMAGINI = {
+    heroMain:          '...',   ← cambia qui con '/images/hero-piscina.jpg'
+    appartamentoLoft:  '...',   ← cambia qui con '/images/appartamento-loft.jpg'
+    appartamentoAttico:'...',   ← cambia qui con '/images/appartamento-attico.jpg'
+  };
+
+Salva il file e il sito mostrerà le tue foto.
+
+------------------------------------------------------
+FORMATI SUPPORTATI: JPG, PNG, WebP, AVIF
+======================================================
