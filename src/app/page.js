@@ -103,7 +103,7 @@ function Loader({ onDone }) {
           className="text-4xl md:text-5xl font-bold mb-2 tracking-wide"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
-          SCOGLIO D&apos;ORO
+          PODERE SCOGLIO D&apos;ORO
         </div>
         <div className="text-xs tracking-[0.5em] text-white/60 uppercase mb-8">
           Agriturismo · Toscana
@@ -122,6 +122,7 @@ function Loader({ onDone }) {
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [activeApartment, setActiveApartment] = useState(0);
+  const [activePhoto, setActivePhoto] = useState(0);
   const [lightboxImg, setLightboxImg] = useState(null);
   const [navScrolled, setNavScrolled] = useState(false);
   const [reviewIdx, setReviewIdx] = useState(0);
@@ -148,7 +149,7 @@ export default function Home() {
       capacity: '4 Adulti + 1 Bambino',
       size: '45 mq',
       description:
-        'Questo appartamento offre una vista spettacolare sulla valle sottostante, ed è diviso in zona notte e zona living tramite delle scale che danno accesso alla parte superiore.',
+        'Appartamento su due livelli con vista spettacolare sulla valle sottostante. La zona notte è separata dalla zona living tramite una scala interna che dà accesso al piano superiore.',
       features: [
         'Cucina di ultima generazione',
         'Camino',
@@ -159,15 +160,25 @@ export default function Home() {
         'Ingresso indipendente',
         'Terrazzo panoramico privato',
         'Barbecue a disposizione',
+        'Aria condizionata',
+        'Parcheggio privato',
+        'Pulizie giornaliere incluse',
       ],
-      image: IMMAGINI.appartamentoLoft,
+      // Foto reali dalla struttura: zona living, cucina, camera, bagno, terrazzo
+      images: [
+        '/images/camera5.jpg',
+        '/images/cucina1.jpg',
+        '/images/letto4.jpg',
+        '/images/camera2.jpg',
+        '/images/amenity7.jpg',
+      ],
     },
     {
       name: 'APPARTAMENTO ATTICO',
       capacity: '4 Adulti + 2 Bambini',
       size: '44 mq',
       description:
-        'Impostato su un unico piano: salotto con divano/letto e finestra panoramica, zona living con cucina di ultima generazione affacciata sulla valle sottostante.',
+        'Su unico piano, con salotto dotato di divano/letto e finestra panoramica sulla vallata. Zona living con cucina a vista di ultima generazione, zona notte con bagno privato e terrazzino.',
       features: [
         'Salotto con divano/letto',
         'Finestra panoramica',
@@ -182,7 +193,14 @@ export default function Home() {
         'Terrazza per pasteggiare',
         'Barbecue a disposizione',
       ],
-      image: IMMAGINI.appartamentoAttico,
+      // Foto reali dalla struttura: zona living, camera, cucina, dettagli
+      images: [
+        '/images/camera1.jpg',
+        '/images/cucina2.jpg',
+        '/images/letto1.jpg',
+        '/images/camera3.jpg',
+        '/images/camera6.jpg',
+      ],
     },
   ];
 
@@ -263,10 +281,8 @@ export default function Home() {
   ];
 
   const contacts = [
-    { name: 'Carlo', phone: '+39 338 8953305', type: 'WhatsApp' },
     { name: 'Matteo', phone: '+39 333 1846822', type: 'WhatsApp' },
-    { name: 'Caterina (English)', phone: '+39 345 0863944', type: 'WhatsApp' },
-    { name: 'Telefono Fisso', phone: '+39 0572 490568', type: 'Telefono' },
+    { name: 'Carlo', phone: '+39 338 8953305', type: 'WhatsApp' },
   ];
 
   return (
@@ -324,7 +340,7 @@ export default function Home() {
               }`}
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              SCOGLIO D&apos;ORO
+              PODERE SCOGLIO D&apos;ORO
             </span>
             <div
               className={`hidden md:flex gap-8 text-sm font-medium transition-colors duration-500 ${
@@ -649,7 +665,7 @@ export default function Home() {
               {apartments.map((apt, i) => (
                 <motion.button
                   key={i}
-                  onClick={() => setActiveApartment(i)}
+                  onClick={() => { setActiveApartment(i); setActivePhoto(0); }}
                   className={`px-7 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
                     activeApartment === i
                       ? 'bg-[#8B4513] text-white shadow-md'
@@ -673,33 +689,69 @@ export default function Home() {
                 transition={{ duration: 0.4, ease: 'easeInOut' }}
                 className="grid md:grid-cols-2 gap-14 items-center"
               >
-                <div className="relative overflow-hidden rounded-2xl shadow-xl">
-                  <img
-                    src={apartments[activeApartment].image}
-                    alt={apartments[activeApartment].name}
-                    className="w-full h-[420px] object-cover"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                    <div className="flex gap-4 text-white">
-                      <div>
-                        <div className="text-xs text-white/70 mb-1">Capacità</div>
-                        <div className="font-semibold text-sm">
-                          {apartments[activeApartment].capacity}
+                <div className="flex flex-col gap-3">
+                  {/* Foto principale */}
+                  <div
+                    className="relative overflow-hidden rounded-2xl shadow-xl cursor-zoom-in"
+                    onClick={() =>
+                      setLightboxImg(apartments[activeApartment].images[activePhoto])
+                    }
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={`${activeApartment}-${activePhoto}`}
+                        src={apartments[activeApartment].images[activePhoto]}
+                        alt={apartments[activeApartment].name}
+                        className="w-full h-[360px] object-cover"
+                        initial={{ opacity: 0, scale: 1.04 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.35 }}
+                      />
+                    </AnimatePresence>
+                    {/* Badge info */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 to-transparent p-5">
+                      <div className="flex gap-4 text-white">
+                        <div>
+                          <div className="text-xs text-white/70 mb-0.5">Capacità</div>
+                          <div className="font-semibold text-sm">
+                            {apartments[activeApartment].capacity}
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-px bg-white/30" />
-                      <div>
-                        <div className="text-xs text-white/70 mb-1">Superficie</div>
-                        <div className="font-semibold text-sm">
-                          {apartments[activeApartment].size}
+                        <div className="w-px bg-white/30" />
+                        <div>
+                          <div className="text-xs text-white/70 mb-0.5">Superficie</div>
+                          <div className="font-semibold text-sm">
+                            {apartments[activeApartment].size}
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-px bg-white/30" />
-                      <div>
-                        <div className="text-xs text-white/70 mb-1">Check-in</div>
-                        <div className="font-semibold text-sm">14:30</div>
+                        <div className="w-px bg-white/30" />
+                        <div>
+                          <div className="text-xs text-white/70 mb-0.5">Check-in</div>
+                          <div className="font-semibold text-sm">14:30</div>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                  {/* Miniature */}
+                  <div className="flex gap-2">
+                    {apartments[activeApartment].images.map((src, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActivePhoto(i)}
+                        className={`flex-1 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
+                          activePhoto === i
+                            ? 'border-[#8B4513] shadow-md'
+                            : 'border-transparent opacity-60 hover:opacity-90'
+                        }`}
+                      >
+                        <img
+                          src={src}
+                          alt={`Foto ${i + 1}`}
+                          className="w-full h-16 object-cover"
+                        />
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div>
@@ -955,7 +1007,7 @@ export default function Home() {
                 </div>
                 <div className="flex gap-3 flex-wrap">
                   <motion.a
-                    href="https://wa.me/393388953305"
+                    href="https://wa.me/393331846822"
                     className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#25D366] text-white rounded-xl font-semibold hover:bg-[#20BA5C] transition-colors duration-300"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                     whileHover={{ scale: 1.03 }}
@@ -989,7 +1041,7 @@ export default function Home() {
                   className="text-2xl font-bold text-[#D4A574] mb-3"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  Scoglio d&apos;Oro
+                  Podere Scoglio d&apos;Oro
                 </div>
                 <p className="text-gray-400 leading-relaxed text-sm max-w-xs">
                   Agriturismo di lusso nel cuore della Toscana. Casa colonica del
@@ -1026,7 +1078,7 @@ export default function Home() {
               </div>
             </div>
             <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-gray-500">
-              <p>&copy; 2026 Agriturismo Scoglio d&apos;Oro. Tutti i diritti riservati.</p>
+              <p>&copy; 2026 Agriturismo Podere Scoglio d&apos;Oro. Tutti i diritti riservati.</p>
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3 h-3 text-[#D4A574] fill-[#D4A574]" />
