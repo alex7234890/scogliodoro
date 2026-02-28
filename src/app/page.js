@@ -25,24 +25,21 @@ import {
   Waves,
 } from 'lucide-react';
 
-// ============================================================
-// FOTO - Metti le tue immagini in  public/images/
-// e sostituisci gli URL qui sotto con  /images/nome-file.jpg
-// ============================================================
+// Foto scaricate da Booking.com (foto ufficiali della struttura)
 const IMMAGINI = {
-  heroMain:
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-piscina-sfioro-KRXKLH8viBEuh5U9gGAKVT.webp',
-  appartamentoLoft:
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-struttura-colonica-dSr3SVC7ciqBBbzKy7ai5x.webp',
-  appartamentoAttico:
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-panorama-vallata-4gZ8npFm2Fd8E8QP2bsZGc.webp',
-  // Galleria: aggiungi le tue foto in public/images/gallery/
-  // e sostituisci gli URL qui sotto
+  heroMain: '/images/piscina2.jpg',         // Piscina a sfioro principale
+  chiSiamo: '/images/esterno1.jpg',          // Vista esterna struttura
+  appartamentoLoft: '/images/camera2.jpg',  // Camera appartamento Loft
+  appartamentoAttico: '/images/letto1.jpg', // Camera appartamento Attico
   gallery: [
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-piscina-sfioro-KRXKLH8viBEuh5U9gGAKVT.webp',
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-struttura-colonica-dSr3SVC7ciqBBbzKy7ai5x.webp',
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-panorama-vallata-4gZ8npFm2Fd8E8QP2bsZGc.webp',
-    // Aggiungi qui altri URL o percorsi /images/gallery/foto4.jpg ...
+    '/images/piscina2.jpg',   // Piscina – immagine grande
+    '/images/esterno1.jpg',   // Facciata esterna
+    '/images/panorama1.jpg',  // Panorama vallata
+    '/images/camera2.jpg',    // Soggiorno / zona living
+    '/images/cucina1.jpg',    // Cucina attrezzata
+    '/images/amenity1.jpg',   // Amenities / zona wellness
+    '/images/letto1.jpg',     // Camera da letto
+    '/images/natura.jpg',     // Natura e uliveto
   ],
 };
 
@@ -505,7 +502,7 @@ export default function Home() {
                 className="relative"
               >
                 <motion.img
-                  src={IMMAGINI.appartamentoLoft}
+                  src={IMMAGINI.chiSiamo}
                   alt="Struttura"
                   className="w-full h-[480px] object-cover rounded-2xl shadow-2xl"
                   whileHover={{ scale: 1.02 }}
@@ -591,22 +588,35 @@ export default function Home() {
                 Galleria
               </h2>
             </motion.div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {IMMAGINI.gallery.map((src, i) => (
+            {/* Griglia masonry: prima foto grande, le altre in griglia 3 colonne */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {/* Foto grande in evidenza */}
+              <motion.div
+                {...fadeUp}
+                className="col-span-2 row-span-2 overflow-hidden rounded-2xl cursor-pointer"
+                onClick={() => setLightboxImg(IMMAGINI.gallery[0])}
+                whileHover={{ scale: 1.01 }}
+              >
+                <img
+                  src={IMMAGINI.gallery[0]}
+                  alt="Piscina a sfioro"
+                  className="w-full h-64 md:h-full md:min-h-[460px] object-cover hover:scale-105 transition-transform duration-700"
+                />
+              </motion.div>
+              {/* Restanti 7 foto in griglia 2 colonne */}
+              {IMMAGINI.gallery.slice(1).map((src, i) => (
                 <motion.div
-                  key={i}
+                  key={i + 1}
                   {...fadeUp}
-                  transition={{ ...fadeUp.transition, delay: i * 0.1 }}
-                  className={`overflow-hidden rounded-xl cursor-pointer ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
+                  transition={{ ...fadeUp.transition, delay: (i + 1) * 0.08 }}
+                  className="overflow-hidden rounded-xl cursor-pointer"
                   onClick={() => setLightboxImg(src)}
                   whileHover={{ scale: 1.02 }}
                 >
                   <img
                     src={src}
-                    alt={`Galleria ${i + 1}`}
-                    className={`w-full object-cover hover:scale-105 transition-transform duration-700 ${
-                      i === 0 ? 'h-72 md:h-full md:min-h-[460px]' : 'h-52 md:h-[218px]'
-                    }`}
+                    alt={`Galleria ${i + 2}`}
+                    className="w-full h-44 md:h-[218px] object-cover hover:scale-105 transition-transform duration-700"
                   />
                 </motion.div>
               ))}
