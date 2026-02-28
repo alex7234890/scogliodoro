@@ -691,7 +691,7 @@ export default function Home() {
             </motion.div>
 
             {/* Tabs */}
-            <div className="flex gap-4 justify-center mb-14">
+            <div className="flex flex-wrap gap-3 justify-center mb-14">
               {apartments.map((apt, i) => (
                 <motion.button
                   key={i}
