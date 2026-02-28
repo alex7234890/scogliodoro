@@ -710,13 +710,14 @@ export default function Home() {
             </div>
 
             {/* Contenuto */}
+            <div className="overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeApartment}
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
                 className="grid md:grid-cols-2 gap-14 items-center"
               >
                 <div className="flex flex-col gap-3">
@@ -824,6 +825,7 @@ export default function Home() {
                 </div>
               </motion.div>
             </AnimatePresence>
+            </div>
           </div>
         </section>
 
