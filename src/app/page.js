@@ -1,41 +1,157 @@
 'use client';
 
-import { useState } from 'react';
-import { Phone, MessageCircle, MapPin, Wifi, Droplet, Wind } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useInView,
+} from 'framer-motion';
+import {
+  Phone,
+  MessageCircle,
+  MapPin,
+  Wifi,
+  Droplet,
+  Wind,
+  Star,
+  X,
+  ChevronDown,
+  Car,
+  Leaf,
+  Clock,
+  Thermometer,
+  Waves,
+} from 'lucide-react';
 
 // ============================================================
-// FOTO - Per cambiare le immagini:
-//   1. Metti i tuoi file nella cartella  public/images/
-//   2. Sostituisci l'URL con il percorso locale, es.:
-//      heroMain: '/images/hero-piscina.jpg'
-//
-// Al momento le immagini caricano dal server originale.
+// FOTO - Metti le tue immagini in  public/images/
+// e sostituisci gli URL qui sotto con  /images/nome-file.jpg
 // ============================================================
 const IMMAGINI = {
-  // Sezione Hero - foto principale della struttura / piscina a sfioro
   heroMain:
     'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-piscina-sfioro-KRXKLH8viBEuh5U9gGAKVT.webp',
-
-  // Appartamento Loft - foto della casa colonica / interno loft
   appartamentoLoft:
     'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-struttura-colonica-dSr3SVC7ciqBBbzKy7ai5x.webp',
-
-  // Appartamento Attico - foto del panorama / vallata
   appartamentoAttico:
     'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-panorama-vallata-4gZ8npFm2Fd8E8QP2bsZGc.webp',
+  // Galleria: aggiungi le tue foto in public/images/gallery/
+  // e sostituisci gli URL qui sotto
+  gallery: [
+    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-piscina-sfioro-KRXKLH8viBEuh5U9gGAKVT.webp',
+    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-struttura-colonica-dSr3SVC7ciqBBbzKy7ai5x.webp',
+    'https://d2xsxph8kpxj0f.cloudfront.net/310519663082761836/N75sTD6zhZXnmFd9ha2cHS/hero-panorama-vallata-4gZ8npFm2Fd8E8QP2bsZGc.webp',
+    // Aggiungi qui altri URL o percorsi /images/gallery/foto4.jpg ...
+  ],
 };
 
+// Preset animazione fade-up riutilizzabile
+const fadeUp = {
+  initial: { opacity: 0, y: 48 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: '-60px' },
+  transition: { duration: 0.75, ease: [0.25, 0.1, 0.25, 1] },
+};
+
+// Contatore animato
+function Counter({ to, suffix = '', prefix = '', decimal = false }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const steps = 60;
+    const stepTime = 2000 / steps;
+    const increment = to / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= to) {
+        setCount(to);
+        clearInterval(timer);
+      } else {
+        setCount(decimal ? Math.round(current * 10) / 10 : Math.floor(current));
+      }
+    }, stepTime);
+    return () => clearInterval(timer);
+  }, [inView, to, decimal]);
+
+  return (
+    <span ref={ref}>
+      {prefix}
+      {decimal ? count.toFixed(1) : count}
+      {suffix}
+    </span>
+  );
+}
+
+// Schermata di caricamento iniziale
+function Loader({ onDone }) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[100] bg-[#8B4513] flex items-center justify-center"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.9, ease: 'easeInOut' } }}
+    >
+      <motion.div
+        className="text-center text-white"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        onAnimationComplete={() => setTimeout(onDone, 1400)}
+      >
+        <div
+          className="text-4xl md:text-5xl font-bold mb-2 tracking-wide"
+          style={{ fontFamily: "'Playfair Display', serif" }}
+        >
+          SCOGLIO D&apos;ORO
+        </div>
+        <div className="text-xs tracking-[0.5em] text-white/60 uppercase mb-8">
+          Agriturismo · Toscana
+        </div>
+        <motion.div
+          className="h-px bg-white/30 mx-auto"
+          initial={{ width: 0 }}
+          animate={{ width: 180 }}
+          transition={{ duration: 1.2, delay: 0.3, ease: 'easeInOut' }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
+  const [loaded, setLoaded] = useState(false);
   const [activeApartment, setActiveApartment] = useState(0);
+  const [lightboxImg, setLightboxImg] = useState(null);
+  const [navScrolled, setNavScrolled] = useState(false);
+  const [reviewIdx, setReviewIdx] = useState(0);
+
+  const { scrollY, scrollYProgress } = useScroll();
+  const heroY = useTransform(scrollY, [0, 700], [0, 220]);
+  const heroOpacity = useTransform(scrollY, [0, 450], [1, 0]);
+
+  useEffect(() => {
+    const onScroll = () => setNavScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Auto-advance reviews
+  useEffect(() => {
+    const t = setInterval(() => setReviewIdx((i) => (i + 1) % reviews.length), 5000);
+    return () => clearInterval(t);
+  }, []);
 
   const apartments = [
     {
-      id: 1,
       name: 'APPARTAMENTO LOFT',
       capacity: '4 Adulti + 1 Bambino',
       size: '45 mq',
       description:
-        'Questo appartamento offre una vista spettacolare sulla valle sottostante, ed è diviso in zona notte e zona living, tramite delle scale che danno accesso alla parte superiore.',
+        'Questo appartamento offre una vista spettacolare sulla valle sottostante, ed è diviso in zona notte e zona living tramite delle scale che danno accesso alla parte superiore.',
       features: [
         'Cucina di ultima generazione',
         'Camino',
@@ -50,12 +166,11 @@ export default function Home() {
       image: IMMAGINI.appartamentoLoft,
     },
     {
-      id: 2,
       name: 'APPARTAMENTO ATTICO',
       capacity: '4 Adulti + 2 Bambini',
       size: '44 mq',
       description:
-        'Impostato su di un unico piano, troviamo un salotto con divano/letto e finestra panoramica, la zona living con cucina di ultima generazione che si affaccia sulla valle sottostante.',
+        'Impostato su un unico piano: salotto con divano/letto e finestra panoramica, zona living con cucina di ultima generazione affacciata sulla valle sottostante.',
       features: [
         'Salotto con divano/letto',
         'Finestra panoramica',
@@ -76,21 +191,78 @@ export default function Home() {
 
   const amenities = [
     {
-      icon: Droplet,
+      icon: Waves,
       title: 'Piscina a Sfioro',
       description:
-        'Piscina con trattamento ai sali di magnesio e vista spettacolare sulla vallata',
+        'Piscina con trattamento ai sali di magnesio e vista mozzafiato sulla vallata pesciatina. Aperta in stagione estiva.',
     },
     {
-      icon: Wind,
+      icon: Thermometer,
       title: 'Sauna Finlandese',
-      description: 'Centro benessere esclusivo con sauna e vasca idromassaggio',
+      description:
+        'Centro benessere esclusivo con sauna finlandese e vasca idromassaggio per rigenerare corpo e mente.',
     },
     {
       icon: Wifi,
-      title: 'Wi-Fi Gratuito',
-      description: 'Connessione internet illimitata in tutta la struttura',
+      title: 'Wi-Fi Illimitato',
+      description:
+        'Connessione internet ad alta velocità disponibile gratuitamente in tutti gli spazi della struttura.',
     },
+    {
+      icon: Leaf,
+      title: 'Sostenibilità',
+      description:
+        "Riscaldamento prodotto da centrale termica a biomassa. Un podere rispettoso dell'ambiente.",
+    },
+    {
+      icon: Car,
+      title: 'Parcheggio Privato',
+      description:
+        'Ampio parcheggio privato gratuito in loco. Accessibile anche per persone con mobilità ridotta.',
+    },
+    {
+      icon: Wind,
+      title: 'Aria Condizionata',
+      description:
+        'Tutti gli appartamenti sono dotati di aria condizionata per il massimo comfort in ogni stagione.',
+    },
+  ];
+
+  const reviews = [
+    {
+      text: 'Esperienza molto positiva. Appartamento conforme alla descrizione, molto pulito, Wi-Fi efficiente, angolo cottura ben attrezzato. La piscina è molto bella. Il proprietario è stato molto cordiale. Decisamente raccomandato.',
+      author: 'Marco T.',
+      stars: 5,
+      via: 'Booking.com',
+    },
+    {
+      text: 'Ottimo rapporto qualità/prezzo. La camera era molto bella e arredata con stile moderno. La posizione era strategica, permettendoci di raggiungere facilmente le principali attrazioni della Toscana.',
+      author: 'Chiara M.',
+      stars: 5,
+      via: 'Booking.com',
+    },
+    {
+      text: 'I gestori sono stati gentilissimi e sono andati oltre le aspettative. È il posto ideale per rilassarsi senza essere disturbati da nessuno. Il panorama dalla terrazza è indimenticabile.',
+      author: 'Luca B.',
+      stars: 5,
+      via: 'Booking.com',
+    },
+    {
+      text: 'Una struttura meravigliosa immersa nella natura toscana. La piscina a sfioro con vista sulla vallata è semplicemente spettacolare. Torneremo sicuramente!',
+      author: 'Sophie R.',
+      stars: 5,
+      via: 'TripAdvisor',
+    },
+  ];
+
+  const dintorni = [
+    { city: 'Pescia', km: 3, note: 'Centro città' },
+    { city: 'Montecatini Terme', km: 12, note: 'Terme e benessere' },
+    { city: 'Pistoia', km: 25, note: 'Arte medievale' },
+    { city: 'Lucca', km: 30, note: 'Mura storiche' },
+    { city: 'Pisa', km: 50, note: 'Torre Pendente' },
+    { city: 'Firenze', km: 60, note: 'Capitale del Rinascimento' },
+    { city: 'Siena', km: 90, note: 'Palio e Duomo' },
   ];
 
   const contacts = [
@@ -101,324 +273,760 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigazione */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="container mx-auto px-6 flex items-center justify-between h-20">
-          <div
-            className="text-2xl font-bold text-[#8B4513]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+    <>
+      {/* Loader */}
+      <AnimatePresence>{!loaded && <Loader onDone={() => setLoaded(true)} />}</AnimatePresence>
+
+      {/* Barra progresso scroll */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-[3px] bg-[#D4A574] z-[60] origin-left"
+        style={{ scaleX: scrollYProgress }}
+      />
+
+      {/* Lightbox galleria */}
+      <AnimatePresence>
+        {lightboxImg && (
+          <motion.div
+            className="fixed inset-0 z-[90] bg-black/92 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightboxImg(null)}
           >
-            SCOGLIO D&apos;ORO
+            <button
+              className="absolute top-5 right-5 text-white/70 hover:text-white transition"
+              onClick={() => setLightboxImg(null)}
+            >
+              <X className="w-9 h-9" />
+            </button>
+            <motion.img
+              src={lightboxImg}
+              alt="Galleria"
+              className="max-h-[88vh] max-w-[88vw] object-contain rounded-xl shadow-2xl"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="min-h-screen bg-white">
+        {/* ── NAVIGAZIONE ── */}
+        <motion.nav
+          className={`fixed top-[3px] left-0 right-0 z-50 transition-all duration-500 ${
+            navScrolled ? 'bg-white/97 shadow-sm backdrop-blur-sm' : 'bg-transparent'
+          }`}
+        >
+          <div className="container mx-auto px-6 flex items-center justify-between h-20">
+            <span
+              className={`text-2xl font-bold tracking-wide transition-colors duration-500 ${
+                navScrolled ? 'text-[#8B4513]' : 'text-white'
+              }`}
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              SCOGLIO D&apos;ORO
+            </span>
+            <div
+              className={`hidden md:flex gap-8 text-sm font-medium transition-colors duration-500 ${
+                navScrolled ? 'text-gray-700' : 'text-white/90'
+              }`}
+            >
+              {['Alloggi', 'Struttura', 'Galleria', 'Dintorni', 'Contatti'].map((label) => (
+                <a
+                  key={label}
+                  href={`#${label.toLowerCase()}`}
+                  className="hover:text-[#D4A574] transition-colors duration-300"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+            <a
+              href="#contatti"
+              className={`hidden md:block px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-500 ${
+                navScrolled
+                  ? 'bg-[#8B4513] text-white border-[#8B4513] hover:bg-[#A0522D]'
+                  : 'bg-white/10 text-white border-white/40 hover:bg-white/20 backdrop-blur-sm'
+              }`}
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              Prenota
+            </a>
           </div>
-          <div className="flex gap-8 text-sm font-medium text-gray-700">
-            <a href="#alloggi" className="hover:text-[#8B4513] transition">
-              Alloggi
-            </a>
-            <a href="#struttura" className="hover:text-[#8B4513] transition">
-              Struttura
-            </a>
-            <a href="#contatti" className="hover:text-[#8B4513] transition">
-              Contatti
-            </a>
-          </div>
-        </div>
-      </nav>
+        </motion.nav>
 
-      {/* Hero */}
-      <section className="pt-20 h-screen flex items-center justify-center relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${IMMAGINI.heroMain})` }}
-        />
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="relative z-10 text-center text-white px-4 max-w-3xl">
-          <h1
-            className="text-6xl md:text-7xl mb-6"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+        {/* ── HERO ── */}
+        <section className="h-screen flex items-center justify-center relative overflow-hidden">
+          <motion.div
+            className="absolute inset-0 bg-cover bg-center scale-110"
+            style={{ backgroundImage: `url(${IMMAGINI.heroMain})`, y: heroY }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/65" />
+
+          <motion.div
+            className="relative z-10 text-center text-white px-4 max-w-4xl"
+            style={{ opacity: heroOpacity }}
           >
-            Scegli il Relax
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 font-light">
-            Vivi la tua vacanza in armonia con la natura nel cuore della Toscana
-          </p>
-          <a
-            href="#contatti"
-            className="inline-block px-8 py-4 bg-[#8B4513] text-white rounded-lg hover:bg-[#A0522D] transition-all duration-300 font-semibold tracking-wide"
-            style={{ fontFamily: "'Montserrat', sans-serif", letterSpacing: '0.05em' }}
+            <motion.p
+              className="text-xs tracking-[0.5em] mb-6 text-white/65 uppercase"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 20 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              Agriturismo · Pescia · Toscana
+            </motion.p>
+            <motion.h1
+              className="text-6xl md:text-8xl mb-6 leading-tight"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 40 }}
+              transition={{ delay: 0.5, duration: 0.9 }}
+            >
+              Scegli il Relax
+            </motion.h1>
+            <motion.p
+              className="text-lg md:text-2xl mb-10 font-light text-white/80 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 30 }}
+              transition={{ delay: 0.7, duration: 0.8 }}
+            >
+              Vivi la tua vacanza in armonia con la natura nel cuore della Toscana
+            </motion.p>
+            <motion.div
+              className="flex gap-4 justify-center flex-wrap"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: loaded ? 1 : 0 }}
+              transition={{ delay: 0.9, duration: 0.8 }}
+            >
+              <motion.a
+                href="#contatti"
+                className="px-9 py-4 bg-[#8B4513] text-white rounded-lg font-semibold tracking-wide hover:bg-[#A0522D] transition-colors duration-300"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Contattaci Ora
+              </motion.a>
+              <motion.a
+                href="#galleria"
+                className="px-9 py-4 bg-white/10 text-white rounded-lg font-semibold tracking-wide border border-white/40 hover:bg-white/20 backdrop-blur-sm transition-colors duration-300"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Scopri la Struttura
+              </motion.a>
+            </motion.div>
+          </motion.div>
+
+          {/* Freccia scroll */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: loaded ? 1 : 0 }}
+            transition={{ delay: 1.3, duration: 1 }}
           >
-            Contattaci Ora
-          </a>
-        </div>
-      </section>
+            <div className="animate-bounce">
+              <ChevronDown className="w-7 h-7" />
+            </div>
+          </motion.div>
+        </section>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-
-      {/* Chi Siamo */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <h2
-            className="text-5xl mb-8 text-[#8B4513]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Chi Siamo
-          </h2>
-          <p className="text-lg text-gray-700 leading-relaxed mb-6">
-            Il nome &ldquo;Scoglio d&apos;oro&rdquo; fu dato dai paesani di alcune generazioni
-            passate all&apos;antica casa colonica, costruita per il suo intero con pietre a vivo,
-            poiché richiamava alla mente l&apos;immagine di uno scoglio dorato che si erge da un
-            &ldquo;mare verde&rdquo;, costituito dalla natura circostante.
-          </p>
-          <p className="text-lg text-gray-700 leading-relaxed mb-6">
-            L&apos;Agriturismo è costituito in appartamenti ricavati da una casa colonica dei
-            primi del &apos;900 che è stata recentemente ampliata con degli spazi realizzati in
-            chiave moderna garantendo l&apos;equilibrio fra ciò che è e ciò che è stato.
-          </p>
-          <p className="text-lg text-gray-700 leading-relaxed">
-            Situato su uno dei due colli che vanno ad abbracciare la vallata pesciatina,
-            l&apos;Agriturismo si contraddistingue per la sua posizione fortemente strategica. È
-            possibile inoltre raggiungere con facilità le maggiori città toscane quali Firenze,
-            Lucca, Siena e Pisa.
-          </p>
-        </div>
-      </section>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-
-      {/* La Struttura */}
-      <section id="struttura" className="py-20 bg-[#F5E6D3]/30">
-        <div className="container mx-auto px-6">
-          <h2
-            className="text-5xl mb-16 text-center text-[#8B4513]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            La Struttura
-          </h2>
-          <div className="grid md:grid-cols-3 gap-12">
-            {amenities.map((amenity, idx) => {
-              const Icon = amenity.icon;
-              return (
-                <div key={idx} className="text-center">
-                  <Icon className="w-16 h-16 mx-auto mb-6 text-[#D4A574]" />
-                  <h3
-                    className="text-2xl mb-4 text-[#8B4513]"
+        {/* ── STATS ── */}
+        <section className="py-16 bg-[#8B4513]">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white text-center">
+              {[
+                { to: 8.9, suffix: '★', label: 'Rating Booking.com', decimal: true },
+                { to: 2, suffix: '', label: 'Appartamenti Esclusivi' },
+                { to: 45, suffix: ' mq', label: 'Superficie Media' },
+                { to: 15, suffix: '+', label: 'Anni di Ospitalità' },
+              ].map((s, i) => (
+                <motion.div
+                  key={i}
+                  {...fadeUp}
+                  transition={{ ...fadeUp.transition, delay: i * 0.12 }}
+                >
+                  <div
+                    className="text-4xl md:text-5xl font-bold mb-2"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
-                    {amenity.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">{amenity.description}</p>
-                </div>
-              );
-            })}
+                    <Counter to={s.to} suffix={s.suffix} decimal={s.decimal ?? false} />
+                  </div>
+                  <div className="text-sm text-white/65 tracking-wide uppercase">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
-      {/* Alloggi */}
-      <section id="alloggi" className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <h2
-            className="text-5xl mb-16 text-center text-[#8B4513]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Alloggi
-          </h2>
+        {/* ── CHI SIAMO ── */}
+        <section className="py-24 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <motion.div {...fadeUp}>
+                <p
+                  className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  La nostra storia
+                </p>
+                <h2
+                  className="text-5xl mb-8 text-[#8B4513] leading-tight"
+                  style={{ fontFamily: "'Playfair Display', serif" }}
+                >
+                  Chi Siamo
+                </h2>
+                <p className="text-lg text-gray-700 leading-relaxed mb-5">
+                  Il nome &ldquo;Scoglio d&apos;oro&rdquo; fu dato dai paesani di alcune generazioni
+                  passate all&apos;antica casa colonica, costruita interamente in pietra a vivo,
+                  poiché richiamava l&apos;immagine di uno scoglio dorato che si erge da un
+                  &ldquo;mare verde&rdquo; di natura circostante.
+                </p>
+                <p className="text-lg text-gray-700 leading-relaxed mb-5">
+                  L&apos;Agriturismo è ricavato da una casa colonica dei primi del &apos;900,
+                  recentemente ampliata in chiave moderna garantendo l&apos;equilibrio fra ciò che è
+                  e ciò che è stato. Immerso in un podere di ulivi e alberi da frutto, con panorami
+                  mozzafiato dalla vallata pesciatina.
+                </p>
+                <p className="text-lg text-gray-700 leading-relaxed">
+                  Situato su uno dei colli che abbracciano la vallata, a soli 3 km da Pescia e a
+                  meno di un&apos;ora dalle principali città toscane: Firenze, Lucca, Siena e Pisa.
+                </p>
+              </motion.div>
+              <motion.div
+                {...fadeUp}
+                transition={{ ...fadeUp.transition, delay: 0.2 }}
+                className="relative"
+              >
+                <motion.img
+                  src={IMMAGINI.appartamentoLoft}
+                  alt="Struttura"
+                  className="w-full h-[480px] object-cover rounded-2xl shadow-2xl"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.4 }}
+                />
+                <div className="absolute -bottom-6 -left-6 bg-[#8B4513] text-white p-5 rounded-xl shadow-xl">
+                  <div
+                    className="text-3xl font-bold"
+                    style={{ fontFamily: "'Playfair Display', serif" }}
+                  >
+                    <Counter to={15} suffix="+" />
+                  </div>
+                  <div className="text-sm text-white/75">anni di ospitalità</div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
-          {/* Selettore */}
-          <div className="flex gap-4 justify-center mb-12">
-            {apartments.map((apt, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveApartment(idx)}
-                className={`px-6 py-3 rounded-lg transition-all duration-300 font-semibold ${
-                  activeApartment === idx
-                    ? 'bg-[#8B4513] text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        {/* ── STRUTTURA ── */}
+        <section id="struttura" className="py-24 bg-[#F5E6D3]/25">
+          <div className="container mx-auto px-6">
+            <motion.div {...fadeUp} className="text-center mb-16">
+              <p
+                className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                {apt.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Dettagli */}
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <img
-                src={apartments[activeApartment].image}
-                alt={apartments[activeApartment].name}
-                className="w-full h-96 object-cover rounded-lg shadow-lg"
-              />
-            </div>
-            <div>
-              <h3
-                className="text-4xl mb-4 text-[#8B4513]"
+                Servizi e comfort
+              </p>
+              <h2
+                className="text-5xl text-[#8B4513]"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                {apartments[activeApartment].name}
-              </h3>
-              <div className="flex gap-6 mb-6 text-gray-700">
-                <div>
-                  <p className="text-sm text-gray-500">Capacità</p>
-                  <p className="font-semibold">{apartments[activeApartment].capacity}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Superficie</p>
-                  <p className="font-semibold">{apartments[activeApartment].size}</p>
-                </div>
-              </div>
-              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                {apartments[activeApartment].description}
+                La Struttura
+              </h2>
+            </motion.div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+              {amenities.map((a, i) => {
+                const Icon = a.icon;
+                return (
+                  <motion.div
+                    key={i}
+                    {...fadeUp}
+                    transition={{ ...fadeUp.transition, delay: i * 0.1 }}
+                    className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 group"
+                    whileHover={{ y: -4 }}
+                  >
+                    <div className="w-14 h-14 rounded-xl bg-[#F5E6D3] flex items-center justify-center mb-5 group-hover:bg-[#8B4513] transition-colors duration-300">
+                      <Icon className="w-7 h-7 text-[#8B4513] group-hover:text-white transition-colors duration-300" />
+                    </div>
+                    <h3
+                      className="text-xl mb-3 text-[#8B4513]"
+                      style={{ fontFamily: "'Playfair Display', serif" }}
+                    >
+                      {a.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed text-sm">{a.description}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        {/* ── GALLERIA ── */}
+        <section id="galleria" className="py-24 bg-white">
+          <div className="container mx-auto px-6">
+            <motion.div {...fadeUp} className="text-center mb-16">
+              <p
+                className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Immagini
               </p>
-              <div className="mb-8">
-                <h4 className="text-lg font-semibold text-[#8B4513] mb-4">Servizi Inclusi:</h4>
-                <ul className="grid grid-cols-2 gap-3">
-                  {apartments[activeApartment].features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-gray-700">
-                      <span className="text-[#D4A574] mt-1">✓</span>
-                      <span>{feature}</span>
+              <h2
+                className="text-5xl text-[#8B4513]"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Galleria
+              </h2>
+            </motion.div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {IMMAGINI.gallery.map((src, i) => (
+                <motion.div
+                  key={i}
+                  {...fadeUp}
+                  transition={{ ...fadeUp.transition, delay: i * 0.1 }}
+                  className={`overflow-hidden rounded-xl cursor-pointer ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
+                  onClick={() => setLightboxImg(src)}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <img
+                    src={src}
+                    alt={`Galleria ${i + 1}`}
+                    className={`w-full object-cover hover:scale-105 transition-transform duration-700 ${
+                      i === 0 ? 'h-72 md:h-full md:min-h-[460px]' : 'h-52 md:h-[218px]'
+                    }`}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        {/* ── ALLOGGI ── */}
+        <section id="alloggi" className="py-24 bg-[#F5E6D3]/20">
+          <div className="container mx-auto px-6">
+            <motion.div {...fadeUp} className="text-center mb-16">
+              <p
+                className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Dove soggiornare
+              </p>
+              <h2
+                className="text-5xl text-[#8B4513]"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Alloggi
+              </h2>
+            </motion.div>
+
+            {/* Tabs */}
+            <div className="flex gap-4 justify-center mb-14">
+              {apartments.map((apt, i) => (
+                <motion.button
+                  key={i}
+                  onClick={() => setActiveApartment(i)}
+                  className={`px-7 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
+                    activeApartment === i
+                      ? 'bg-[#8B4513] text-white shadow-md'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-[#8B4513] hover:text-[#8B4513]'
+                  }`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {apt.name}
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Contenuto */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeApartment}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="grid md:grid-cols-2 gap-14 items-center"
+              >
+                <div className="relative overflow-hidden rounded-2xl shadow-xl">
+                  <img
+                    src={apartments[activeApartment].image}
+                    alt={apartments[activeApartment].name}
+                    className="w-full h-[420px] object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
+                    <div className="flex gap-4 text-white">
+                      <div>
+                        <div className="text-xs text-white/70 mb-1">Capacità</div>
+                        <div className="font-semibold text-sm">
+                          {apartments[activeApartment].capacity}
+                        </div>
+                      </div>
+                      <div className="w-px bg-white/30" />
+                      <div>
+                        <div className="text-xs text-white/70 mb-1">Superficie</div>
+                        <div className="font-semibold text-sm">
+                          {apartments[activeApartment].size}
+                        </div>
+                      </div>
+                      <div className="w-px bg-white/30" />
+                      <div>
+                        <div className="text-xs text-white/70 mb-1">Check-in</div>
+                        <div className="font-semibold text-sm">14:30</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3
+                    className="text-4xl mb-4 text-[#8B4513]"
+                    style={{ fontFamily: "'Playfair Display', serif" }}
+                  >
+                    {apartments[activeApartment].name}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed mb-8">
+                    {apartments[activeApartment].description}
+                  </p>
+                  <h4 className="text-sm font-semibold text-[#8B4513] uppercase tracking-wider mb-5">
+                    Servizi Inclusi
+                  </h4>
+                  <ul className="grid grid-cols-2 gap-3 mb-8">
+                    {apartments[activeApartment].features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-gray-700 text-sm">
+                        <span className="text-[#D4A574] font-bold mt-0.5">✓</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <motion.a
+                    href="#contatti"
+                    className="inline-block px-8 py-4 bg-[#8B4513] text-white rounded-lg font-semibold hover:bg-[#A0522D] transition-colors duration-300"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Richiedi Disponibilità
+                  </motion.a>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </section>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        {/* ── DINTORNI ── */}
+        <section id="dintorni" className="py-24 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <motion.div {...fadeUp} className="text-center mb-16">
+              <p
+                className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Posizione strategica
+              </p>
+              <h2
+                className="text-5xl text-[#8B4513] mb-4"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Dintorni
+              </h2>
+              <p className="text-gray-600 max-w-xl mx-auto">
+                Nel cuore delle strade del Vino e dell&apos;Olio d&apos;Oliva della Toscana, con
+                accesso facile alle maggiori città d&apos;arte.
+              </p>
+            </motion.div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {dintorni.map((d, i) => (
+                <motion.div
+                  key={i}
+                  {...fadeUp}
+                  transition={{ ...fadeUp.transition, delay: i * 0.08 }}
+                  className="bg-[#F5E6D3]/30 rounded-xl p-5 border border-[#D4A574]/20 hover:border-[#8B4513]/30 hover:bg-[#F5E6D3]/50 transition-all duration-300"
+                  whileHover={{ y: -3 }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Car className="w-4 h-4 text-[#D4A574]" />
+                    <span
+                      className="text-2xl font-bold text-[#8B4513]"
+                      style={{ fontFamily: "'Playfair Display', serif" }}
+                    >
+                      {d.km} km
+                    </span>
+                  </div>
+                  <div className="font-semibold text-gray-800">{d.city}</div>
+                  <div className="text-xs text-gray-500 mt-1">{d.note}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        {/* ── RECENSIONI ── */}
+        <section className="py-24 bg-[#8B4513] overflow-hidden">
+          <div className="container mx-auto px-6">
+            <motion.div {...fadeUp} className="text-center mb-14">
+              <p
+                className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Cosa dicono gli ospiti
+              </p>
+              <h2
+                className="text-5xl text-white"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Recensioni
+              </h2>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-[#D4A574] fill-[#D4A574]" />
+                ))}
+                <span className="text-white/70 ml-2 text-sm">8.9 su Booking.com</span>
+              </div>
+            </motion.div>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={reviewIdx}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.5 }}
+                className="max-w-3xl mx-auto text-center"
+              >
+                <div className="text-6xl text-[#D4A574]/40 mb-4 leading-none">&ldquo;</div>
+                <p className="text-white/85 text-xl leading-relaxed mb-8 italic">
+                  {reviews[reviewIdx].text}
+                </p>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex gap-1">
+                    {[...Array(reviews[reviewIdx].stars)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-[#D4A574] fill-[#D4A574]" />
+                    ))}
+                  </div>
+                  <div className="text-white font-semibold">{reviews[reviewIdx].author}</div>
+                  <div className="text-white/50 text-sm">{reviews[reviewIdx].via}</div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Dots */}
+            <div className="flex gap-2 justify-center mt-10">
+              {reviews.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setReviewIdx(i)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    reviewIdx === i ? 'bg-[#D4A574] w-6' : 'bg-white/30'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        {/* ── CONTATTI ── */}
+        <section id="contatti" className="py-24 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <motion.div {...fadeUp} className="text-center mb-16">
+              <p
+                className="text-xs tracking-[0.4em] text-[#D4A574] uppercase mb-4"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Siamo qui per te
+              </p>
+              <h2
+                className="text-5xl text-[#8B4513] mb-4"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Contattaci
+              </h2>
+              <p className="text-gray-600">
+                Scrivici o chiamaci per prenotare la tua vacanza perfetta in Toscana.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-12">
+              {/* Info */}
+              <motion.div {...fadeUp}>
+                <div className="bg-[#F5E6D3]/30 rounded-2xl p-8 border border-[#D4A574]/20 h-full">
+                  <h3
+                    className="text-2xl mb-6 text-[#8B4513]"
+                    style={{ fontFamily: "'Playfair Display', serif" }}
+                  >
+                    Dove Siamo
+                  </h3>
+                  <div className="flex gap-3 items-start mb-6">
+                    <MapPin className="w-5 h-5 text-[#8B4513] mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Via Santa Margherita, 23</p>
+                      <p className="text-gray-600">Pescia (PT) 51017, Toscana</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start mb-6">
+                    <Clock className="w-5 h-5 text-[#8B4513] mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Check-in / Check-out</p>
+                      <p className="text-gray-600">Arrivo dalle 14:30 · Partenza entro le 10:00</p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://maps.google.com/?q=Via+Santa+Margherita+23+Pescia"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-[#8B4513] hover:text-[#D4A574] font-semibold text-sm transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Apri su Google Maps
+                  </a>
+                </div>
+              </motion.div>
+
+              {/* Contatti diretti */}
+              <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.15 }}>
+                <h3
+                  className="text-2xl mb-6 text-[#8B4513]"
+                  style={{ fontFamily: "'Playfair Display', serif" }}
+                >
+                  Contatti Diretti
+                </h3>
+                <div className="space-y-3 mb-8">
+                  {contacts.map((c, i) => (
+                    <motion.a
+                      key={i}
+                      href={
+                        c.type === 'WhatsApp'
+                          ? `https://wa.me/${c.phone.replace(/\D/g, '')}`
+                          : `tel:${c.phone}`
+                      }
+                      className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-[#D4A574]/50 hover:bg-[#F5E6D3]/20 transition-all duration-300 group"
+                      whileHover={{ x: 4 }}
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          c.type === 'WhatsApp' ? 'bg-[#25D366]/10' : 'bg-[#8B4513]/10'
+                        }`}
+                      >
+                        {c.type === 'WhatsApp' ? (
+                          <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                        ) : (
+                          <Phone className="w-5 h-5 text-[#8B4513]" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{c.name}</p>
+                        <p className="text-gray-500 text-sm">{c.phone}</p>
+                      </div>
+                      <div className="ml-auto text-[#D4A574] opacity-0 group-hover:opacity-100 transition-opacity">
+                        →
+                      </div>
+                    </motion.a>
+                  ))}
+                </div>
+                <div className="flex gap-3 flex-wrap">
+                  <motion.a
+                    href="https://wa.me/393388953305"
+                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#25D366] text-white rounded-xl font-semibold hover:bg-[#20BA5C] transition-colors duration-300"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    WhatsApp
+                  </motion.a>
+                  <motion.a
+                    href="tel:+390572490568"
+                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#8B4513] text-white rounded-xl font-semibold hover:bg-[#A0522D] transition-colors duration-300"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <Phone className="w-5 h-5" />
+                    Chiama
+                  </motion.a>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FOOTER ── */}
+        <footer className="py-14 bg-gray-950 text-white">
+          <div className="container mx-auto px-6">
+            <div className="grid md:grid-cols-4 gap-10 mb-10">
+              <div className="md:col-span-2">
+                <div
+                  className="text-2xl font-bold text-[#D4A574] mb-3"
+                  style={{ fontFamily: "'Playfair Display', serif" }}
+                >
+                  Scoglio d&apos;Oro
+                </div>
+                <p className="text-gray-400 leading-relaxed text-sm max-w-xs">
+                  Agriturismo di lusso nel cuore della Toscana. Casa colonica del
+                  &apos;900 con piscina a sfioro, sauna e panorama mozzafiato.
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">
+                  Navigazione
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  {['Alloggi', 'Struttura', 'Galleria', 'Dintorni', 'Contatti'].map((l) => (
+                    <li key={l}>
+                      <a
+                        href={`#${l.toLowerCase()}`}
+                        className="hover:text-[#D4A574] transition-colors"
+                      >
+                        {l}
+                      </a>
                     </li>
                   ))}
                 </ul>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-
-      {/* Contatti */}
-      <section id="contatti" className="py-20 bg-[#F5E6D3]/30">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <h2
-            className="text-5xl mb-4 text-center text-[#8B4513]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Contattaci
-          </h2>
-          <p className="text-center text-gray-700 mb-16 text-lg">
-            Siamo a tua disposizione per rispondere a tutte le tue domande e aiutarti a
-            prenotare la tua vacanza perfetta.
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <div>
-              <h3
-                className="text-2xl mb-4 text-[#8B4513]"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                Informazioni
-              </h3>
-              <div className="flex gap-3 items-start mb-4">
-                <MapPin className="w-5 h-5 text-[#8B4513] mt-1 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-gray-900">Via Santa Margherita, 23</p>
-                  <p className="text-gray-700">Pescia (PT) 51017, Italia</p>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">
+                  Contatti
+                </h4>
+                <div className="space-y-2 text-sm text-gray-400">
+                  <p>+39 0572 490568</p>
+                  <p>poderescogliodoro@gmail.com</p>
+                  <p>Via Santa Margherita, 23</p>
+                  <p>Pescia (PT), 51017</p>
                 </div>
               </div>
             </div>
-
-            <div>
-              <h3
-                className="text-2xl mb-4 text-[#8B4513]"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                Contatti Diretti
-              </h3>
-              <div className="space-y-3">
-                {contacts.map((contact, idx) => (
-                  <a
-                    key={idx}
-                    href={
-                      contact.type === 'WhatsApp'
-                        ? `https://wa.me/${contact.phone.replace(/\D/g, '')}`
-                        : `tel:${contact.phone}`
-                    }
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors"
-                  >
-                    {contact.type === 'WhatsApp' ? (
-                      <MessageCircle className="w-5 h-5 text-[#25D366]" />
-                    ) : (
-                      <Phone className="w-5 h-5 text-[#8B4513]" />
-                    )}
-                    <div>
-                      <p className="font-semibold text-gray-900">{contact.name}</p>
-                      <p className="text-sm text-gray-600">{contact.phone}</p>
-                    </div>
-                  </a>
+            <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-gray-500">
+              <p>&copy; 2026 Agriturismo Scoglio d&apos;Oro. Tutti i diritti riservati.</p>
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3 h-3 text-[#D4A574] fill-[#D4A574]" />
                 ))}
+                <span className="ml-2">8.9 · Booking.com</span>
               </div>
             </div>
           </div>
-
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a
-              href="https://wa.me/393388953305"
-              className="px-8 py-4 bg-[#25D366] text-white rounded-lg hover:bg-[#20BA5C] transition-all duration-300 font-semibold tracking-wide flex items-center gap-2"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              <MessageCircle className="w-5 h-5" />
-              Contatta su WhatsApp
-            </a>
-            <a
-              href="tel:+390572490568"
-              className="px-8 py-4 bg-[#8B4513] text-white rounded-lg hover:bg-[#A0522D] transition-all duration-300 font-semibold tracking-wide flex items-center gap-2"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              <Phone className="w-5 h-5" />
-              Chiama Ora
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-
-      {/* Footer */}
-      <footer className="py-12 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h4 className="text-lg font-semibold text-[#8B4513] mb-4">
-                Scoglio d&apos;Oro
-              </h4>
-              <p className="text-gray-700">Agriturismo di lusso nel cuore della Toscana</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-[#8B4513] mb-4">Navigazione</h4>
-              <ul className="space-y-2 text-gray-700">
-                <li>
-                  <a href="#alloggi" className="hover:text-[#8B4513] transition">
-                    Alloggi
-                  </a>
-                </li>
-                <li>
-                  <a href="#struttura" className="hover:text-[#8B4513] transition">
-                    Struttura
-                  </a>
-                </li>
-                <li>
-                  <a href="#contatti" className="hover:text-[#8B4513] transition">
-                    Contatti
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-[#8B4513] mb-4">Contatti</h4>
-              <p className="text-gray-700">+39 0572 490568</p>
-              <p className="text-gray-700">poderescogliodoro@gmail.com</p>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 pt-8 text-center text-gray-600">
-            <p>&copy; 2026 Agriturismo Scoglio d&apos;Oro. Tutti i diritti riservati.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </>
   );
 }
