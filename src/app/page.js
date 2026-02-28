@@ -146,8 +146,9 @@ export default function Home() {
   const apartments = [
     {
       name: 'APPARTAMENTO LOFT',
-      capacity: '4 Adulti + 1 Bambino',
-      size: '45 mq',
+      capacity: '4 Ospiti',
+      size: '51 mq',
+      bed: 'Letto matrimoniale',
       description:
         'Appartamento su due livelli con vista spettacolare sulla valle sottostante. La zona notte è separata dalla zona living tramite una scala interna che dà accesso al piano superiore.',
       features: [
@@ -162,9 +163,8 @@ export default function Home() {
         'Barbecue a disposizione',
         'Aria condizionata',
         'Parcheggio privato',
-        'Pulizie giornaliere incluse',
+        'Macchina del caffè',
       ],
-      // Foto reali dalla struttura: zona living, cucina, camera, bagno, terrazzo
       images: [
         '/images/camera5.jpg',
         '/images/cucina1.jpg',
@@ -175,8 +175,9 @@ export default function Home() {
     },
     {
       name: 'APPARTAMENTO ATTICO',
-      capacity: '4 Adulti + 2 Bambini',
-      size: '44 mq',
+      capacity: '4 Ospiti',
+      size: '49 mq',
+      bed: 'Letto King Size',
       description:
         'Su unico piano, con salotto dotato di divano/letto e finestra panoramica sulla vallata. Zona living con cucina a vista di ultima generazione, zona notte con bagno privato e terrazzino.',
       features: [
@@ -191,14 +192,42 @@ export default function Home() {
         'Wi-Fi gratuito illimitato',
         'Ingresso indipendente',
         'Terrazza per pasteggiare',
-        'Barbecue a disposizione',
+        'Macchina del caffè',
       ],
-      // Foto reali dalla struttura: zona living, camera, cucina, dettagli
       images: [
         '/images/camera1.jpg',
         '/images/cucina2.jpg',
         '/images/letto1.jpg',
         '/images/camera3.jpg',
+        '/images/camera6.jpg',
+      ],
+    },
+    {
+      name: 'CAMERA MATRIMONIALE',
+      capacity: '2 Ospiti',
+      size: '20 mq',
+      bed: 'Letto King Size',
+      description:
+        'Camera matrimoniale con letto King Size, progettata anche per l\'accessibilità con bagno attrezzato per persone a mobilità ridotta. Finestre insonorizzate e vista sul podere.',
+      features: [
+        'Letto King Size',
+        'Bagno privato con doccia',
+        'Accessibile per disabili',
+        'TV schermo piatto',
+        'Wi-Fi gratuito illimitato',
+        'Aria condizionata',
+        'Riscaldamento',
+        'Finestre insonorizzate',
+        'Prodotti da bagno inclusi',
+        'Accesso alla sauna',
+        'Parcheggio privato',
+        'Pulizie giornaliere',
+      ],
+      images: [
+        '/images/letto2.jpg',
+        '/images/letto3.jpg',
+        '/images/camera4.jpg',
+        '/images/amenity6.jpg',
         '/images/camera6.jpg',
       ],
     },
@@ -711,7 +740,7 @@ export default function Home() {
                     </AnimatePresence>
                     {/* Badge info */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 to-transparent p-5">
-                      <div className="flex gap-4 text-white">
+                      <div className="flex gap-4 text-white flex-wrap">
                         <div>
                           <div className="text-xs text-white/70 mb-0.5">Capacità</div>
                           <div className="font-semibold text-sm">
@@ -723,6 +752,13 @@ export default function Home() {
                           <div className="text-xs text-white/70 mb-0.5">Superficie</div>
                           <div className="font-semibold text-sm">
                             {apartments[activeApartment].size}
+                          </div>
+                        </div>
+                        <div className="w-px bg-white/30" />
+                        <div>
+                          <div className="text-xs text-white/70 mb-0.5">Letto</div>
+                          <div className="font-semibold text-sm">
+                            {apartments[activeApartment].bed}
                           </div>
                         </div>
                         <div className="w-px bg-white/30" />
