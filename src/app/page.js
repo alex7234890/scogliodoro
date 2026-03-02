@@ -312,7 +312,7 @@ export default function Home() {
 
   const contacts = [
     { name: 'Matteo', phone: '+39 333 1846822', type: 'WhatsApp' },
-    { name: 'Carlo', phone: '+39 338 8953305', type: 'WhatsApp' },
+    { name: 'Carlo', phone: '+39 348 3814580', type: 'WhatsApp' },
   ];
 
   return (
