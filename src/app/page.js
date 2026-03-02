@@ -9,7 +9,7 @@ import {
   useInView,
 } from 'framer-motion';
 import {
-  Phone,
+  Mail,
   MessageCircle,
   MapPin,
   Wifi,
@@ -961,7 +961,7 @@ export default function Home() {
                 Contattaci
               </h2>
               <p className="text-gray-600">
-                Scrivici o chiamaci per prenotare la tua vacanza perfetta in Toscana.
+                Scrivici su WhatsApp o via email per prenotare la tua vacanza perfetta in Toscana.
               </p>
             </motion.div>
 
@@ -1029,7 +1029,7 @@ export default function Home() {
                         {c.type === 'WhatsApp' ? (
                           <MessageCircle className="w-5 h-5 text-[#25D366]" />
                         ) : (
-                          <Phone className="w-5 h-5 text-[#8B4513]" />
+                          <Mail className="w-5 h-5 text-[#8B4513]" />
                         )}
                       </div>
                       <div>
@@ -1054,14 +1054,14 @@ export default function Home() {
                     WhatsApp
                   </motion.a>
                   <motion.a
-                    href="tel:+390572490568"
+                    href="mailto:poderescogliodoro@gmail.com"
                     className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#8B4513] text-white rounded-xl font-semibold hover:bg-[#A0522D] transition-colors duration-300"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    <Phone className="w-5 h-5" />
-                    Chiama
+                    <Mail className="w-5 h-5" />
+                    Email
                   </motion.a>
                 </div>
               </motion.div>
