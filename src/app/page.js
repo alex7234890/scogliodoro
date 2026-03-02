@@ -25,21 +25,19 @@ import {
   Waves,
 } from 'lucide-react';
 
-// Foto scaricate da Booking.com (foto ufficiali della struttura)
+// Foto ufficiali della struttura
 const IMMAGINI = {
-  heroMain: '/images/piscina2.jpg',         // Piscina a sfioro principale
-  chiSiamo: '/images/esterno1.jpg',          // Vista esterna struttura
-  appartamentoLoft: '/images/camera2.jpg',  // Camera appartamento Loft
-  appartamentoAttico: '/images/letto1.jpg', // Camera appartamento Attico
+  heroMain: '/images/hero.jpg',
+  chiSiamo: '/images/generali-facciata.jpg',
   gallery: [
-    '/images/piscina2.jpg',   // Piscina – immagine grande
-    '/images/esterno1.jpg',   // Facciata esterna
-    '/images/panorama1.jpg',  // Panorama vallata
-    '/images/camera2.jpg',    // Soggiorno / zona living
-    '/images/cucina1.jpg',    // Cucina attrezzata
-    '/images/amenity1.jpg',   // Amenities / zona wellness
-    '/images/letto1.jpg',     // Camera da letto
-    '/images/natura.jpg',     // Natura e uliveto
+    '/images/generali-piscina.jpg',
+    '/images/generali-facciata.jpg',
+    '/images/generali-panorama.jpg',
+    '/images/generali-aperitivo.jpg',
+    '/images/generali-terrazza.jpg',
+    '/images/generali-sauna.jpg',
+    '/images/generali-vasca.jpg',
+    '/images/generali-natura.jpg',
   ],
 };
 
@@ -167,11 +165,11 @@ export default function Home() {
         'Macchina del caffè',
       ],
       images: [
-        '/images/camera5.jpg',
-        '/images/cucina1.jpg',
-        '/images/letto4.jpg',
-        '/images/camera2.jpg',
-        '/images/amenity7.jpg',
+        '/images/loft-soggiorno.jpg',
+        '/images/loft-cucina.jpg',
+        '/images/loft-camino.jpg',
+        '/images/loft-camera.jpg',
+        '/images/loft-bagno.jpg',
       ],
     },
     {
@@ -196,11 +194,11 @@ export default function Home() {
         'Macchina del caffè',
       ],
       images: [
-        '/images/camera1.jpg',
-        '/images/cucina2.jpg',
-        '/images/letto1.jpg',
-        '/images/camera3.jpg',
-        '/images/camera6.jpg',
+        '/images/attico-camera.jpg',
+        '/images/attico-cucina.jpg',
+        '/images/attico-soggiorno.jpg',
+        '/images/attico-terrazzo.jpg',
+        '/images/attico-bagno.jpg',
       ],
     },
     {
@@ -225,11 +223,11 @@ export default function Home() {
         'Pulizie giornaliere',
       ],
       images: [
-        '/images/letto2.jpg',
-        '/images/letto3.jpg',
-        '/images/camera4.jpg',
-        '/images/amenity6.jpg',
-        '/images/camera6.jpg',
+        '/images/camera-letto.jpg',
+        '/images/camera-romantica.jpg',
+        '/images/camera-tv.jpg',
+        '/images/camera-bagno.jpg',
+        '/images/camera-doccia.jpg',
       ],
     },
   ];
